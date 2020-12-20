@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="https://www.thymeleaf.org"
+	xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<style>
+table, td {
+	border: 1px solid black;
+	border-collapse: collapse;
+	padding: 15px;
+	text-align: center;
+	background-color: #e8f8f5;
+}
+
+th {
+	border: 1px solid black;
+	border-collapse: collapse;
+	padding: 15px;
+	text-align: center;
+	background-color: #17a589;
+}
+</style>
+
+<script>
+	function updateTable(page, size) {
+		// Send GET request to obtain jokes
+		$.get(
+				"/jokes?page=" + page + "&size=" + size,
+				function(data, status) {
+					var jokes = JSON.parse(JSON.stringify(data, null, 4));
+					var nJokes = jokes.length;
+
+					var jokesTableHtml = "";
+
+					// Build new table for current page
+					jokesTableHtml += "<table border: 1px solid black>";
+
+					// Build table header
+					jokesTableHtml += "<tr>";
+					jokesTableHtml += "<th>#</th>";
+					jokesTableHtml += "<th>Category</th>";
+					jokesTableHtml += "<th>Joke</th>";
+					jokesTableHtml += "<th>Likes</th>";
+					jokesTableHtml += "<th>Dislikes</th>";
+					jokesTableHtml += "<th>Difference</th>";
+					jokesTableHtml += "<th>Like/Dislike</th>";
+					jokesTableHtml += "</tr>";
+
+					// Build table rows
+					var i;
+					for (i = 0; i < nJokes; i++) {
+						jokesTableHtml += "<tr>";
+						jokesTableHtml += "<td>" + (i + 1 + (currentPage * 10))
+								+ "</td>";
+						jokesTableHtml += "<td>" + jokes[i].category + "</td>";
+						jokesTableHtml += "<td>" + jokes[i].content + "</td>";
+						jokesTableHtml += "<td>" + jokes[i].likes + "</td>";
+						jokesTableHtml += "<td>" + jokes[i].dislikes + "</td>";
+						jokesTableHtml += "<td>" + jokes[i].difference
+								+ "</td>";
+						jokesTableHtml += "<td>" + "<button onclick=like("
+								+ jokes[i].id
+								+ ")>Like</button><br><button onclick=dislike("
+								+ jokes[i].id + ")>Disike</button>" + "</td>";
+						jokesTableHtml += "</tr>";
+					}
+
+					jokesTableHtml += "</table>";
+
+					// Display current jokes page
+					$("#jokesTableDiv").html(jokesTableHtml);
+				}).fail(function(data, txtStatus, xhr) {
+			alert("Something went wrong!\n" + JSON.stringify(data, null, 4));
+		});
+	}
+
+	function like(jokeId) {
+		$.post("/jokes/" + jokeId + "/like", {}, function(data, status) {
+			// Do nothing
+		}).done(function() {
+			// Refresh table
+			changePage(currentPage);
+		}).fail(function(data, txtStatus, xhr) {
+			alert("Something went wrong!\n" + JSON.stringify(data, null, 4));
+		});
+	}
+
+	function dislike(jokeId) {
+		$.post("/jokes/" + jokeId + "/dislike", {}, function(data, status) {
+			// Do nothing
+		}).done(function() {
+			// Refresh table
+			changePage(currentPage);
+		}).fail(function(data, txtStatus, xhr) {
+			alert("Something went wrong!\n" + JSON.stringify(data, null, 4));
+		});
+	}
+
+	function changePage(pageNumber) {
+		currentPage = pageNumber;
+		updateTable(pageNumber, 10);
+		buildTablePages();
+	}
+
+	function buildTablePages() {
+		// Send GET request to obtain total number of jokes
+		$.get(
+				"/jokes/count",
+				function(data, status) {
+					var nJokes = data;
+					var nPages = Math.ceil(data / 10.0);
+
+					var pagesHtml = "";
+
+					// Build button for each page
+					var i;
+					for (i = 0; i < nPages; i++) {
+						var rangeStart = (i * 10) + 1;
+						var rangeEnd = rangeStart + 10 - 1;
+						buttonString = "<button onclick=changePage(" + i
+								+ ")>Page " + (i + 1) + " (" + rangeStart + "-"
+								+ rangeEnd + ")</button><br>";
+						pagesHtml += buttonString;
+					}
+
+					// Display jokes table pages
+					$("#jokesTablePagesDiv").html(pagesHtml);
+				}).fail(function(data, txtStatus, xhr) {
+			alert("Something went wrong!\n" + JSON.stringify(data, null, 4));
+		});
+	}
+</script>
+
+<script>
+	var currentPage = 0;
+	$(document).ready(function() {
+
+		updateTable(0, 10);
+		buildTablePages();
+	});
+</script>
+<head>
+<title>Jokes application</title>
+</head>
+<body>
+	<h1>Welcome to the jokes application!</h1>
+
+	<a th:href="@{/new-joke}"><button>Add a new joke!</button></a>
+
+	<div style="margin-top: 50px" id="jokesTableDiv"></div>
+	<div style="margin-top: 25px" id="jokesTablePagesDiv"></div>
+
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="UTF-8">
+<title>Jokes application</title>
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+	$(document).ready(function() {
+		$("#btnSubmit").click(function() {
+			var contentVal = $("#content").val();
+			var categoryVal = $("#category").val();
+			
+			// Validate form
+			if (contentVal == null || contentVal.trim().length == 0) {
+				alert("Please input your joke in the content field!");
+				return;
+			}
+			if (category == null) {
+				alert("Please select a joke category");
+			}
+			
+			// Send POST request
+			$.post("/jokes", {
+				content : contentVal,
+				category : categoryVal
+			}, function(data, status) {
+				alert("Joke added successfully!")
+			}).done(function() {
+				// Redirect after success
+				window.location.replace("/");
+			}).fail(function(data, txtStatus, xhr) {
+				alert("Something went wrong!\n" + JSON.stringify(data, null, 4));
+			});
+		});
+	});
+</script>
+</head>
+<body>
+
+	<h1>Add a new joke!</h1>
+
+	<label> Content : <input type="text" name="content"
+		id="content" />
+	</label>
+	<label for="category"> Category:</label>
+	<select name="category" id="category">
+		<option value="Pun">Pun</option>
+		<option value="Knock-knock">Knock-knock</option>
+		<option value="One-liner">One-liner</option>
+	</select>
+	<button id="btnSubmit">Add joke</button>
+
+</body>
+</html>
